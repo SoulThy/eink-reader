@@ -1,0 +1,4 @@
+reference/
+node_modules/
+*.zip
+web-ext-artifacts/
