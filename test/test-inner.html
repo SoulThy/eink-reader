@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inner container test</title>
+<style>
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body {
+    font: 17px/1.55 Georgia, serif;
+    color: #111;
+    background: linear-gradient(160deg, #eef3f8, #f8f4ec 55%, #e6efe8);
+  }
+
+  /* The window must never scroll: only .scroller does. */
+  .note {
+    margin: 0;
+    padding: 8px 12px;
+    background: #fff;
+    border-bottom: 2px solid #111;
+    font: 13px/1.4 system-ui, sans-serif;
+  }
+
+  /* ~90% of the viewport, the only scrolling box on the page */
+  .scroller {
+    width: 90vw;
+    height: 90vh;
+    margin: 0 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: #fff;
+    border: 2px solid #111;
+    border-radius: 6px;
+  }
+  .scroller-inner { padding: 12px 14px; }
+
+  h1 { margin: 0 0 8px; font: 600 18px system-ui, sans-serif; }
+  h2 { margin: 0 0 8px; font: 600 16px system-ui, sans-serif; }
+  p { margin: 0 0 10px; }
+</style>
+</head>
+<body>
+<p class="note">Window scrolls: NO. Only the bordered box below scrolls.</p>
+
+<div class="scroller" id="scroller">
+  <div class="scroller-inner">
+    <h1>Inner container test</h1>
+
+    <h2>1. Start of the scroller</h2>
+    <p>Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor
+    incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud
+    exercitation ullamco laboris nisi aliquip ex ea commodo consequat.</p>
+    <p>Duis aute irure in reprehenderit voluptate velit esse cillum eu fugiat nulla
+    pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia
+    deserunt mollit anim id est laborum.</p>
+
+    <h2>2. Middle</h2>
+    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
+    doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore
+    veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed
+    quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+
+    <h2>3. More text</h2>
+    <p>Neque porro quisquam est qui dolorem ipsum quia dolor sit amet consectetur
+    adipisci velit sed quia non numquam eius modi tempora incidunt ut labore et
+    dolore magnam aliquam quaerat voluptatem.</p>
+    <p>Ut enim ad minima veniam quis nostrum exercitationem ullam corporis suscipit
+    laboriosam nisi ut aliquid ex ea commodi consequatur.</p>
+
+    <h2>4. A form inside the scroller</h2>
+    <form action="#" method="get">
+      <label for="q">Search</label>
+      <input id="q" name="q" type="text" style="width:100%;padding:8px;font:15px system-ui,sans-serif">
+      <label for="p">Password</label>
+      <input id="p" name="p" type="password" style="width:100%;padding:8px;font:15px system-ui,sans-serif">
+      <p><button type="submit">Go</button></p>
+    </form>
+
+    <h2>5. Near the end</h2>
+    <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis
+    praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias
+    excepturi sint occaecati cupiditate non provident.</p>
+    <p>Similique sunt in culpa qui officia deserunt mollitia animi id est laborum et
+    dolorum fuga et harum quidem rerum facilis est et expedita distinctio.</p>
+
+    <h2>6. End of the scroller</h2>
+    <p>You have reached the bottom of the inner container. The window itself never
+    moved.</p>
+  </div>
+</div>
+</body>
+</html>
