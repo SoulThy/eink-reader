@@ -12,6 +12,11 @@
 - /reference is read-only research. Never copy code from it.
 - Never add a library, permission, or file without asking me first.
 
+## Tools
+- Context7 MCP is available and usable: resolve a library id, then query its docs
+  for current API details before writing against a browser/WebExtension API.
+- Docs are reference only. This project still takes no dependencies.
+
 ## Code style
 - Simplicity beats features. Keep it simple.
 - Small functions, self explicit names, comments only for non-obvious "why".
