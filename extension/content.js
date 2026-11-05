@@ -11,6 +11,7 @@ let lastTap = null;
 let writeChain = Promise.resolve();
 let indicator = null;
 let indicatorTimer = 0;
+let selectionGuardTimer = 0;
 
 function normalizeSite() {
   return location.hostname.toLowerCase().replace(/^www\./, "");
@@ -63,6 +64,27 @@ function isDoubleTap(time, x, y) {
   return withinTime && withinDistance;
 }
 
+// Android selects a word on double tap. Blocking selection for the double tap
+// window only, from the first tap's touchend, keeps long press selection
+// working because that gesture starts before any touchend.
+function guardTextSelection() {
+  document.documentElement.style.userSelect = "none";
+  clearTimeout(selectionGuardTimer);
+  selectionGuardTimer = setTimeout(restoreTextSelection, DOUBLE_TAP_WINDOW_MS);
+}
+
+function restoreTextSelection() {
+  clearTimeout(selectionGuardTimer);
+  document.documentElement.style.userSelect = "";
+}
+
+function clearSelection() {
+  const selection = window.getSelection();
+  if (selection !== null) {
+    selection.removeAllRanges();
+  }
+}
+
 function handleTouchEnd(event) {
   if (event.changedTouches.length !== 1 || event.touches.length !== 0) {
     return;
@@ -72,6 +94,7 @@ function handleTouchEnd(event) {
   // remembered as the first half of a double tap.
   if (isInteractiveTarget(event.target)) {
     lastTap = null;
+    restoreTextSelection();
     return;
   }
 
@@ -80,10 +103,13 @@ function handleTouchEnd(event) {
 
   if (isDoubleTap(now, touch.clientX, touch.clientY)) {
     lastTap = null;
+    restoreTextSelection();
+    clearSelection();
     toggleSiteState();
     return;
   }
 
+  guardTextSelection();
   lastTap = { time: now, x: touch.clientX, y: touch.clientY };
 }
 

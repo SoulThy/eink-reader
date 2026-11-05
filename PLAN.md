@@ -16,6 +16,10 @@ Milestones in order; work on ONE at a time and tick it when done.
       - Double-tap: 300 ms / 30 px; `touch-action: manipulation` on html+body;
         touch only (no mouse fallback). A tap on a link/control wins: it neither
         toggles nor counts as a first tap.
+      - Text selection: a `user-select: none` guard on `<html>` opens on the first
+        tap and lifts after 300 ms, so the double tap cannot select a word. Long
+        press selection is unaffected (it starts before any touchend). Any
+        leftover selection is cleared on the toggle.
       - Temporary fixed ON/OFF indicator (inline styles, 1.5 s, no animation);
         replaced by the item 3 badge.
 
