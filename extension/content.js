@@ -63,6 +63,29 @@ function isDoubleTap(time, x, y) {
   return withinTime && withinDistance;
 }
 
+// Cancelling the second tap's default action stops Firefox for Android from
+// selecting a word (or flashing the tap highlight) on double tap. Single
+// taps are never prevented, so scrolling, clicking and long press still work.
+function handleTouchStart(event) {
+  if (event.changedTouches.length !== 1) {
+    return;
+  }
+  if (isInteractiveTarget(event.target)) {
+    return;
+  }
+  const touch = event.changedTouches[0];
+  if (isDoubleTap(Date.now(), touch.clientX, touch.clientY)) {
+    event.preventDefault();
+  }
+}
+
+function clearSelection() {
+  const selection = window.getSelection();
+  if (selection !== null) {
+    selection.removeAllRanges();
+  }
+}
+
 function handleTouchEnd(event) {
   if (event.changedTouches.length !== 1 || event.touches.length !== 0) {
     return;
@@ -80,6 +103,7 @@ function handleTouchEnd(event) {
 
   if (isDoubleTap(now, touch.clientX, touch.clientY)) {
     lastTap = null;
+    clearSelection();
     toggleSiteState();
     return;
   }
@@ -95,6 +119,11 @@ function installDoubleTapToggle() {
   document.addEventListener("touchend", handleTouchEnd, {
     capture: true,
     passive: true,
+  });
+
+  document.addEventListener("touchstart", handleTouchStart, {
+    capture: true,
+    passive: false,
   });
 
   if (document.body !== null) {
