@@ -11,7 +11,6 @@ let lastTap = null;
 let writeChain = Promise.resolve();
 let indicator = null;
 let indicatorTimer = 0;
-let selectionGuardTimer = 0;
 
 function normalizeSite() {
   return location.hostname.toLowerCase().replace(/^www\./, "");
@@ -64,18 +63,20 @@ function isDoubleTap(time, x, y) {
   return withinTime && withinDistance;
 }
 
-// Android selects a word on double tap. Blocking selection for the double tap
-// window only, from the first tap's touchend, keeps long press selection
-// working because that gesture starts before any touchend.
-function guardTextSelection() {
-  document.documentElement.style.userSelect = "none";
-  clearTimeout(selectionGuardTimer);
-  selectionGuardTimer = setTimeout(restoreTextSelection, DOUBLE_TAP_WINDOW_MS);
-}
-
-function restoreTextSelection() {
-  clearTimeout(selectionGuardTimer);
-  document.documentElement.style.userSelect = "";
+// Cancelling the second tap's default action stops Firefox for Android from
+// selecting a word (or flashing the tap highlight) on double tap. Single
+// taps are never prevented, so scrolling, clicking and long press still work.
+function handleTouchStart(event) {
+  if (event.changedTouches.length !== 1) {
+    return;
+  }
+  if (isInteractiveTarget(event.target)) {
+    return;
+  }
+  const touch = event.changedTouches[0];
+  if (isDoubleTap(Date.now(), touch.clientX, touch.clientY)) {
+    event.preventDefault();
+  }
 }
 
 function clearSelection() {
@@ -94,7 +95,6 @@ function handleTouchEnd(event) {
   // remembered as the first half of a double tap.
   if (isInteractiveTarget(event.target)) {
     lastTap = null;
-    restoreTextSelection();
     return;
   }
 
@@ -103,13 +103,11 @@ function handleTouchEnd(event) {
 
   if (isDoubleTap(now, touch.clientX, touch.clientY)) {
     lastTap = null;
-    restoreTextSelection();
     clearSelection();
     toggleSiteState();
     return;
   }
 
-  guardTextSelection();
   lastTap = { time: now, x: touch.clientX, y: touch.clientY };
 }
 
@@ -121,6 +119,11 @@ function installDoubleTapToggle() {
   document.addEventListener("touchend", handleTouchEnd, {
     capture: true,
     passive: true,
+  });
+
+  document.addEventListener("touchstart", handleTouchStart, {
+    capture: true,
+    passive: false,
   });
 
   if (document.body !== null) {
