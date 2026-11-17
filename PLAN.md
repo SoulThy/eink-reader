@@ -44,7 +44,7 @@ Milestones in order; work on ONE at a time and tick it when done.
         toggle. `siteOn` is cached in memory (`init` + toggle) so paging is
         synchronous; taps before storage resolves do nothing.
 
-- [ ] **3. Page indicator badge**
+- [x] **3. Page indicator badge**
       Shadow-DOM badge showing "n / m", visible ~1.5s after a turn; "ON"/"OFF"
       after a toggle; then hides. No animation.
 
