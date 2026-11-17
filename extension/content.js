@@ -49,10 +49,6 @@ function writeSiteState(computeNextState) {
   return write;
 }
 
-function setSiteState(on) {
-  return writeSiteState(() => on);
-}
-
 function isInteractiveTarget(node) {
   return node instanceof Element && node.closest(INTERACTIVE_SELECTOR) !== null;
 }
@@ -84,13 +80,19 @@ function restoreScroll(top) {
   getScroller().scrollTo({ top, left: 0, behavior: "instant" });
 }
 
+function getPageMetrics(scroller) {
+  return {
+    step: Math.floor(scroller.clientHeight) - OVERLAP_PX,
+    current: Math.floor(scroller.scrollTop),
+    maxScroll: Math.floor(scroller.scrollHeight - scroller.clientHeight),
+  };
+}
+
 function pageScroller(scroller, direction) {
-  const step = Math.floor(scroller.clientHeight) - OVERLAP_PX;
+  const { step, current, maxScroll } = getPageMetrics(scroller);
   if (step <= 0) {
     return;
   }
-  const current = Math.floor(scroller.scrollTop);
-  const maxScroll = Math.floor(scroller.scrollHeight - scroller.clientHeight);
   const target =
     direction > 0
       ? Math.min(current + step, maxScroll)
@@ -115,16 +117,12 @@ function pageOnZone(x) {
   }
 }
 
-// Mirrors pageScroller's step math so the badge matches the turn just made.
 function showPageIndicator() {
-  const scroller = getScroller();
-  const step = Math.floor(scroller.clientHeight) - OVERLAP_PX;
+  const { step, current, maxScroll } = getPageMetrics(getScroller());
   if (step <= 0) {
     showBadge("1/1");
     return;
   }
-  const current = Math.floor(scroller.scrollTop);
-  const maxScroll = Math.floor(scroller.scrollHeight - scroller.clientHeight);
   const total = maxScroll > 0 ? Math.ceil(maxScroll / step) + 1 : 1;
   const page = Math.min(total, 1 + Math.ceil(current / step));
   showBadge(page + "/" + total);
