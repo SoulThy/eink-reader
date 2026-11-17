@@ -13,8 +13,9 @@ let lastTap = null;
 let siteOn = false;
 let touchStartAt = 0;
 let writeChain = Promise.resolve();
-let indicator = null;
-let indicatorTimer = 0;
+let badgeHost = null;
+let badgeInner = null;
+let badgeTimer = 0;
 
 function normalizeSite() {
   return location.hostname.toLowerCase().replace(/^www\./, "");
@@ -107,9 +108,26 @@ function pageOnZone(x) {
   const width = window.innerWidth;
   if (x < width * 0.25) {
     pageScroller(getScroller(), -1);
+    showPageIndicator();
   } else if (x > width * 0.75) {
     pageScroller(getScroller(), 1);
+    showPageIndicator();
   }
+}
+
+// Mirrors pageScroller's step math so the badge matches the turn just made.
+function showPageIndicator() {
+  const scroller = getScroller();
+  const step = Math.floor(scroller.clientHeight) - OVERLAP_PX;
+  if (step <= 0) {
+    showBadge("1/1");
+    return;
+  }
+  const current = Math.floor(scroller.scrollTop);
+  const maxScroll = Math.floor(scroller.scrollHeight - scroller.clientHeight);
+  const total = maxScroll > 0 ? Math.ceil(maxScroll / step) + 1 : 1;
+  const page = Math.min(total, 1 + Math.ceil(current / step));
+  showBadge(page + "/" + total);
 }
 
 // Cancelling the second tap's default action stops Firefox for Android from
@@ -210,43 +228,59 @@ function logState(on) {
   console.log("eink:", site, on ? "ON" : "OFF");
 }
 
-function showIndicator(text) {
-  if (indicator !== null) {
-    indicator.remove();
-    indicator = null;
+// A shadow root keeps page CSS (button/div resets) from restyling the badge.
+function ensureBadgeHost() {
+  if (badgeHost !== null) {
+    return;
   }
-  clearTimeout(indicatorTimer);
 
-  const element = document.createElement("div");
-  element.textContent = text;
-  element.style.position = "fixed";
-  element.style.top = "12px";
-  element.style.right = "12px";
-  element.style.zIndex = "2147483647";
-  element.style.background = "#fff";
-  element.style.color = "#000";
-  element.style.border = "2px solid #000";
-  element.style.padding = "8px 12px";
-  element.style.fontSize = "20px";
-  element.style.fontWeight = "bold";
-  element.style.pointerEvents = "none";
+  badgeHost = document.createElement("div");
+  badgeHost.style.position = "fixed";
+  badgeHost.style.bottom = "12px";
+  badgeHost.style.left = "0";
+  badgeHost.style.right = "0";
+  badgeHost.style.display = "flex";
+  badgeHost.style.justifyContent = "center";
+  badgeHost.style.zIndex = "2147483647";
+  badgeHost.style.pointerEvents = "none";
 
-  document.documentElement.appendChild(element);
-  indicator = element;
+  const root = badgeHost.attachShadow({ mode: "open" });
+  badgeInner = document.createElement("div");
+  badgeInner.style.display = "none";
+  badgeInner.style.background = "#fff";
+  badgeInner.style.color = "#000";
+  badgeInner.style.border = "2px solid #000";
+  badgeInner.style.padding = "6px 12px";
+  badgeInner.style.fontSize = "18px";
+  badgeInner.style.fontWeight = "bold";
+  badgeInner.style.fontFamily = "sans-serif";
+  badgeInner.style.pointerEvents = "none";
+  badgeInner.style.transition = "none";
 
-  indicatorTimer = setTimeout(() => {
-    element.remove();
-    if (indicator === element) {
-      indicator = null;
-    }
-  }, INDICATOR_VISIBLE_MS);
+  root.appendChild(badgeInner);
+  document.documentElement.appendChild(badgeHost);
+}
+
+function showBadge(text) {
+  ensureBadgeHost();
+  clearTimeout(badgeTimer);
+  badgeInner.textContent = text;
+  badgeInner.style.display = "flex";
+  badgeTimer = setTimeout(hideBadge, INDICATOR_VISIBLE_MS);
+}
+
+function hideBadge() {
+  clearTimeout(badgeTimer);
+  if (badgeInner !== null) {
+    badgeInner.style.display = "none";
+  }
 }
 
 function toggleSiteState() {
   writeSiteState((states) => states[site] !== true)
     .then((on) => {
       siteOn = on;
-      showIndicator(on ? "ON" : "OFF");
+      showBadge(on ? "ON" : "OFF");
       logState(on);
     })
     .catch((error) => console.error("eink: failed to save state", error));
