@@ -24,7 +24,7 @@ Milestones in order; work on ONE at a time and tick it when done.
       - Temporary fixed ON/OFF indicator (inline styles, 1.5 s, no animation);
         replaced by the item 3 badge.
 
-- [ ] **2. Window paging**
+- [x] **2. Window paging**
       Left/right 25% tap zones. Each turn scrolls the window exactly
       `viewport height − 40px`, instantly. Floor pixel values to integers. Ignore
       taps on links/buttons/inputs. First/last page no-ops. Recalc total each turn.
@@ -32,6 +32,17 @@ Milestones in order; work on ONE at a time and tick it when done.
       on the second tap.
       - Reuse item 1's `INTERACTIVE_SELECTOR` (also covers `label`, `summary`,
         `[role="button"]`, `[role="link"]`).
+      - Scroller seam: all scroll reads/writes go through `getScroller()`
+        (`document.scrollingElement`), so item 5 replaces only that body.
+        `behavior: "instant"` is explicit so a site's `scroll-behavior: smooth`
+        cannot animate a turn (do not rely on item 4 for this).
+      - Targets: `step = floor(clientHeight) − 40`, clamped to
+        `floor(scrollHeight − clientHeight)`; no-op when unchanged or `step <= 0`.
+      - Double-tap: the first tap stores raw `scrollTop` in `lastTap` before
+        paging; the second tap restores it unconditionally (no-op when OFF or
+        center). Holds over `TAP_MAX_MS` (500 ms) are long presses: no page, no
+        toggle. `siteOn` is cached in memory (`init` + toggle) so paging is
+        synchronous; taps before storage resolves do nothing.
 
 - [ ] **3. Page indicator badge**
       Shadow-DOM badge showing "n / m", visible ~1.5s after a turn; "ON"/"OFF"
@@ -51,3 +62,4 @@ Milestones in order; work on ONE at a time and tick it when done.
 - [ ] **6. Pinch fullscreen (best-effort)**
       Device feasibility spike first. Pinch out → browser-only fullscreen, pinch
       in → exit. If flaky on target device, move to Nice.
+      - Decision: disabling native pinch zoom while ON belongs to this milestone.
